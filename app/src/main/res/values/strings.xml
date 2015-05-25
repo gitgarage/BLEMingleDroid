@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BLEMingleDroid</string>
+    <string name="ble_not_supported">BLE not supported on this device.</string>
+    <string name="bt_not_supported">Bluetooth not supported on this device.</string>
+    <string name="bt_not_enabled">Bluetooth is not enabled, turn it on.</string>
+    <string name="label_ibeacon">This is iBeacon!</string>
+    <string name="label_not_ibeacon">This is not iBeacon.</string>
+    <!-- Scan -->
+    <string name="action_clear">CLEAR LIST</string>
+    <string name="action_scan">SCAN</string>
+    <string name="action_stop">STOP</string>
+    <string name="action_dump">DUMP CSV</string>
+    <string name="action_license">LICENSE</string>
+    <!-- dialog -->
+    <string name="license_title">OSS LICENSE</string>
+    <string name="license_body">BitGarage - https://github.com/GitGarage</string>
+    <!-- dump -->
+    <string name="dump_failed">Dump Failed.</string>
+    <string name="dump_succeeded_suffix"> Dump Succeeded.</string>
+</resources>
