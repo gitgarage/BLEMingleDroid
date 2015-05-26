@@ -145,6 +145,7 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
                     Log.e("Data",asHex(newScanRecord));
                     boolean enter = subMessage.length() == 16;
                     enter = enter && !subMessage.substring(15).equals("-");
+                    enter = enter || subMessage.length() < 16;
                     textViewToChange.setText(oldText + subMessage.substring(0,subMessage.length()-1) + (enter ? "\n" : ""));
                     Log.e("String", subMessage);
                 }
