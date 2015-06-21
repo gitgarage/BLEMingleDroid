@@ -4,7 +4,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".ScanActivity"
-    android:weightSum="1">
+    android:weightSum="1"
+    android:background="#000000">
 
     <LinearLayout
         android:orientation="vertical"
@@ -16,15 +17,52 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="BLE Peripheral"
+        android:text="BLEMingle"
         android:id="@+id/title"
         android:layout_gravity="center_horizontal"
-        android:textSize="50dp" />
+        android:textSize="50dp"
+        android:textColor="#FFFFFF" />
 
-    <TextView
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/textView"
-        android:textSize="25dp"
-        android:paddingLeft="5dp" />
+        android:layout_height="144dp"
+        android:id="@+id/scrollView"
+        android:layout_weight="0.97">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView"
+            android:textSize="25dp"
+            android:paddingLeft="5dp"
+            android:background="@drawable/back"
+            android:paddingRight="5dp"
+            android:autoText="false"
+            android:textColor="#ffffff"
+            android:layout_weight="2.98"
+            android:gravity="fill"
+            android:height="230dp" />
+    </ScrollView>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="158dp"
+        android:inputType="textMultiLine"
+        android:ems="10"
+        android:id="@+id/editText"
+        android:editable="true"
+        android:background="#333333"
+        android:text="Tap Here To Edit Your Message"
+        android:textColor="#FFFFFF"
+        android:gravity="top"
+        android:padding="5dp" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="67dp"
+        android:text="Send Message"
+        android:id="@+id/send_button"
+        android:textColor="#FFFFFF"
+        android:background="#222222" />
+
 </LinearLayout>

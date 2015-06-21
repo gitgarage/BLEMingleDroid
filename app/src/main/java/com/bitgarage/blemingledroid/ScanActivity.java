@@ -7,17 +7,46 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.AdvertiseCallback;
+import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCallback {
     private BluetoothAdapter mBTAdapter;
+    private BluetoothLeAdvertiser mBTAdvertiser;
+    public boolean CONNECTED = false;
     private boolean mIsScanning;
+    private Button mSendButton;
+    private EditText mEditText;
+    private String TAG = "ScanActivity";
+    private Handler threadHaandler = new Handler();
+
+    private AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
+        public void onStartSuccess(android.bluetooth.le.AdvertiseSettings settingsInEffect) {
+            CONNECTED = true;
+            if (settingsInEffect != null) {
+            } else {
+                Log.d(TAG, "onStartSuccess, settingInEffect is null");
+            }
+            setProgressBarIndeterminateVisibility(false);
+        }
+
+        public void onStartFailure(int errorCode) {
+            CONNECTED = false;
+        };
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,39 +80,6 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
         return true;
     }
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        if (mIsScanning) {
-            menu.findItem(R.id.action_scan).setVisible(false);
-            menu.findItem(R.id.action_stop).setVisible(true);
-        } else {
-            menu.findItem(R.id.action_scan).setEnabled(true);
-            menu.findItem(R.id.action_scan).setVisible(true);
-            menu.findItem(R.id.action_stop).setVisible(false);
-        }
-        if ((mBTAdapter == null) || (!mBTAdapter.isEnabled())) {
-            menu.findItem(R.id.action_scan).setEnabled(false);
-        }
-        return super.onPrepareOptionsMenu(menu);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
-        int itemId = item.getItemId();
-        if (itemId == android.R.id.home) {
-            // ignore
-            return true;
-        } else if (itemId == R.id.action_scan) {
-            startScan();
-            return true;
-        } else if (itemId == R.id.action_stop) {
-            stopScan();
-            return true;
-        }
-        return super.onMenuItemSelected(featureId, item);
-    }
-
     public static String asHex(byte bytes[]) {
         if ((bytes == null) || (bytes.length == 0)) {
             return "";
@@ -102,7 +98,7 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
         return sb.toString();
     }
 
-    public String[] used = new String[100];
+    public String[] used = new String[3];
     public int ui = 0;
 
     @Override
@@ -114,7 +110,6 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
         while (startByte <= 5) {
             if (!Arrays.asList(used).contains(hex)) {
                 used[ui] = hex;
-                ui++;
 
                 String message = new String(newScanRecord);
                 String firstChar = message.substring(5, 6);
@@ -146,7 +141,10 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
                     boolean enter = subMessage.length() == 16;
                     enter = enter && !subMessage.substring(15).equals("-");
                     enter = enter || subMessage.length() < 16;
-                    textViewToChange.setText(oldText + subMessage.substring(0,subMessage.length()-1) + (enter ? "\n" : ""));
+                    textViewToChange.setText(oldText + subMessage.substring(0, subMessage.length() - 1) + (enter ? "\n" : ""));
+                    ui = ui == 2 ? -1 : ui;
+                    ui++;
+
                     Log.e("String", subMessage);
                 }
                 break;
@@ -155,7 +153,72 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
         }
     }
 
+    private void sendMessage() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (mBTAdapter == null) {
+                    return;
+                }
+                if (mBTAdvertiser == null) {
+                    mBTAdvertiser = mBTAdapter.getBluetoothLeAdvertiser();
+                }
+                String textMessage = mEditText.getText().toString();
+                if (textMessage.length() > 0)
+                {
+                    String message = "Android: " + textMessage;
+
+                    while (message.length() > 0) {
+                        String subMessage;
+                        if(message.length() > 8)
+                        {
+                            subMessage = message.substring(0,8) + "-";
+                            message = message.substring(8);
+                            for (int i = 0; i < 20; i++)
+                            {
+                                AdvertiseData ad = BleUtil.makeAdvertiseData(subMessage);
+                                mBTAdvertiser.startAdvertising(BleUtil.createAdvSettings(true, 100), ad, mAdvCallback);
+                                mBTAdvertiser.stopAdvertising(mAdvCallback);
+                            }
+                        }
+                        else
+                        {
+                            subMessage = message;
+                            message = "";
+                            for (int i = 0; i < 5; i++)
+                            {
+                                AdvertiseData ad = BleUtil.makeAdvertiseData(subMessage);
+                                mBTAdvertiser.startAdvertising(
+                                        BleUtil.createAdvSettings(true, 40), ad,
+                                        mAdvCallback);
+                                mBTAdvertiser.stopAdvertising(mAdvCallback);
+                            }
+                        }
+                    }
+                    threadHaandler.post(updateRunnable);
+                }
+            }
+        });
+        thread.start();
+    }
+
+    final Runnable updateRunnable = new Runnable() {
+        public void run() {
+            mEditText.setText("");
+        }
+    };
+
     private void init() {
+        mSendButton = (Button) findViewById(R.id.send_button);
+        mSendButton.setEnabled(true);
+        mSendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendMessage();
+            }
+        });
+
+        mEditText = (EditText) findViewById(R.id.editText);
 
         // BLE check
         if (!BleUtil.isBLESupported(this)) {
@@ -175,6 +238,7 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
             return;
         }
         stopScan();
+        startScan();
     }
 
     private void startScan() {
