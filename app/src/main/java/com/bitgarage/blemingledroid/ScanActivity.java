@@ -35,6 +35,7 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
     private EditText mEditText;
     private String TAG = "ScanActivity";
     private Handler threadHaandler = new Handler();
+    private String lastMessage = "";
 
     private AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
         public void onStartSuccess(android.bluetooth.le.AdvertiseSettings settingsInEffect) {
@@ -109,60 +110,40 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
         return sb.toString();
     }
 
-    public String[] used = new String[3];
-    public int ui = 0;
+    public String[] iPhones = {"","",""};
+    public int iPhoneIndex = 0;
+
+    public boolean contains(String[] devices, String device)
+    {
+        for (String iPhone : devices) {
+            if (device.equals(iPhone))
+                return true;
+        }
+        return false;
+    }
 
     @Override
     public void onLeScan(final BluetoothDevice newDevice, final int newRssi,
                          final byte[] newScanRecord) {
 
-        int startByte = 0;
-        String hex = asHex(newScanRecord).substring(0,29);
-        while (startByte <= 5) {
-            if (!Arrays.asList(used).contains(hex)) {
-                used[ui] = hex;
+        String message = new String(newScanRecord);
+        TextView textViewToChange = (TextView) findViewById(R.id.textView);
+        String oldText = textViewToChange.getText().toString();
+        String device = newDevice.getAddress();
+        String rssi = "" + newRssi;
 
-                String message = new String(newScanRecord);
-                Log.e("String", message);
-                String firstChar = message.substring(5, 6);
-                Pattern pattern = Pattern.compile("[ a-zA-Z0-9~!@#$%^&*()_+{}|:\"<>?`\\-=;',\\./\\[\\]\\\\]", Pattern.DOTALL);
-                Matcher matcher = pattern.matcher(firstChar);
-                if (firstChar.equals("L"))
-                {
-                    firstChar = message.substring(6, 7);
-                    pattern = Pattern.compile("[ a-zA-Z0-9~!@#$%^&*()_+{}|:\"<>?`\\-=;',\\./\\[\\]\\\\]", Pattern.DOTALL);
-                    matcher = pattern.matcher(firstChar);
-                }
-
-                if(matcher.matches())
-                {
-                    TextView textViewToChange = (TextView) findViewById(R.id.textView);
-                    String oldText = textViewToChange.getText().toString();
-                    int len = 0;
-                    String subMessage = "";
-                    while (matcher.matches())
-                    {
-                        subMessage = message.substring(5, 6+len);
-                        matcher = pattern.matcher(message.substring(5+len, 6+len));
-                        len++;
-                    }
-                    subMessage = subMessage.substring(0,subMessage.length()-1);
-
-                    Log.e("Address",newDevice.getAddress());
-                    Log.e("Data",asHex(newScanRecord));
-                    boolean enter = subMessage.length() == 16;
-                    enter = enter && !subMessage.substring(15).equals("-");
-                    enter = enter || subMessage.length() < 16;
-                    textViewToChange.setText(oldText + subMessage.substring(0, subMessage.length() - 1) + (enter ? "\n" : ""));
-
-                    ui = ui == 2 ? -1 : ui;
-                    ui++;
-
-                    Log.e("String", subMessage);
-                }
-                break;
+        if ((!contains(iPhones, device) && message.substring(5,11).equals("iPhone")) || (!message.equals(lastMessage) && contains(iPhones, device))) {
+            if (!contains(iPhones, device))
+            {
+                iPhones[iPhoneIndex] = device;
+                iPhoneIndex++;
             }
-            startByte++;
+            Log.e("Device", device);
+            lastMessage = message;
+            Log.e("Rssi", rssi);
+            Log.e("Message", message);
+            String newMessage = oldText + "\n" + message;
+            textViewToChange.setText(newMessage);
         }
     }
 
