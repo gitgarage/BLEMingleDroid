@@ -1,8 +1,11 @@
 package com.bitgarage.blemingledroid;
 
+import java.security.Permissions;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -12,6 +15,7 @@ import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -54,6 +58,13 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.activity_scan);
 
+        int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 0;
+
+        requestPermissions(
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+
+
         init();
     }
 
@@ -71,7 +82,7 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
     protected void onPause() {
         super.onPause();
 
-        stopScan();
+//        stopScan();
     }
 
     @Override
@@ -112,6 +123,7 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
                 used[ui] = hex;
 
                 String message = new String(newScanRecord);
+                Log.e("String", message);
                 String firstChar = message.substring(5, 6);
                 Pattern pattern = Pattern.compile("[ a-zA-Z0-9~!@#$%^&*()_+{}|:\"<>?`\\-=;',\\./\\[\\]\\\\]", Pattern.DOTALL);
                 Matcher matcher = pattern.matcher(firstChar);
@@ -142,6 +154,7 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
                     enter = enter && !subMessage.substring(15).equals("-");
                     enter = enter || subMessage.length() < 16;
                     textViewToChange.setText(oldText + subMessage.substring(0, subMessage.length() - 1) + (enter ? "\n" : ""));
+
                     ui = ui == 2 ? -1 : ui;
                     ui++;
 
@@ -242,6 +255,8 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
     }
 
     private void startScan() {
+        Log.e("String", "She started it.");
+
         if ((mBTAdapter != null) && (!mIsScanning)) {
             mBTAdapter.startLeScan(this);
             mIsScanning = true;
@@ -251,6 +266,8 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
     }
 
     private void stopScan() {
+        Log.e("String", "I finished it.");
+
         if (mBTAdapter != null) {
             mBTAdapter.stopLeScan(this);
         }

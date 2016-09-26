@@ -4,10 +4,11 @@
     android:versionCode="3"
     android:versionName="1.2" >
     <uses-sdk
-        android:minSdkVersion="21"
-        android:targetSdkVersion="21" />
+        android:minSdkVersion="24"
+        android:targetSdkVersion="24" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
