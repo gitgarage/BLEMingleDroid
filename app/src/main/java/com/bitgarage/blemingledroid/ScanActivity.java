@@ -64,8 +64,11 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
         requestPermissions(
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                 MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+    }
 
-
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
         init();
     }
 
@@ -142,7 +145,11 @@ public class ScanActivity extends Activity implements BluetoothAdapter.LeScanCal
             lastMessage = message;
             Log.e("Rssi", rssi);
             Log.e("Message", message);
-            String newMessage = oldText + "\n" + message;
+            String newMessage;
+            if (message.substring(19, 20).equals("-"))
+                newMessage = oldText + message.substring(5, 19);
+            else
+                newMessage = oldText + message.substring(5) + "\n";
             textViewToChange.setText(newMessage);
         }
     }
